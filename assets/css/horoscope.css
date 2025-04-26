@@ -1,0 +1,16 @@
+
+.react-datepicker-wrapper {
+    display: inline-block;
+    padding: 0;
+    border: 2;
+}
+/*
+.react-datepicker__input-container{ width: 15px; }
+*/
+.react-datepicker {
+    position: inherit;
+}
+
+.react-datepicker-popper {
+    padding-left: 158;
+}

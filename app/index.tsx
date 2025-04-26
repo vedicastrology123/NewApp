@@ -4,14 +4,20 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   TouchableHighlight,
 } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
-import { Snackbar, TextInput } from 'react-native-paper';
+import { TextInput } from 'react-native-paper';
+import { Button } from 'react-native-paper';
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
+import { DatePickerModal, TimePickerModal } from 'react-native-paper-dates';
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { en, registerTranslation } from 'react-native-paper-dates';
+import format from 'date-fns/format';
 
 import CountriesData from './places.json';
+
+registerTranslation('en', en);
 
 const formFields = {
   country: {
@@ -190,29 +196,64 @@ export default function Index() {
   type Inputs = {
     firstName: string
     lastName: string
+    dtob: Date
   }
   
   const {
-    register,
     control,
     handleSubmit,
-    watch,
-    setValue,
     formState: { errors },
   } = useForm<Inputs>()
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    countryFormValue = formValue[0];
+     countryFormValue = formValue[0];
     stateFormValue = formValue[1];
     cityFormValue = formValue[2];
-    const submittedData  = { ...data, countryFormValue, stateFormValue, cityFormValue };
+    const submittedData  = { ...data, countryFormValue, stateFormValue, cityFormValue }; 
 
     //console.log("formValue[0] " + submittedData.countryFormValue);
-  }; 
-  
-  //console.log(watch("lastName"));
+  };
+
+  const [date, setDate] = React.useState(new Date());
+  const [open, setOpen] = React.useState(false);
+
+  const onDismissSingle = React.useCallback(() => {
+    setOpen(false);
+  }, [setOpen]);
+
+  const onConfirmSingle = React.useCallback(
+    (params) => {
+      setOpen(false);
+      //const formattedDate = {params.date ? format(date, 'dd/MMM/yyyy') : ''}
+      console.log(params.date);
+      setPickedDate(formatDate(params.date));
+    },
+    [setOpen, setDate]
+  );
+
+  const formatDate = (date) => {
+    return format(date, 'dd-MMM-yyyy'); // Customize your format here
+   };
+
+  const [pickedDate, setPickedDate] = useState();
+
+  //const [visible, setVisible] = React.useState(false)
+  const onDismiss = React.useCallback(() => {
+    setVisible(false)
+  }, [setVisible])
+
+  const onConfirm = React.useCallback(
+    ({ hours, minutes }) => {
+      setVisible(false);
+      console.log({ hours, minutes });
+      const formattedTime = format(new Date(0, 0, 0, hours, minutes), 'hh:mm a');
+      setPickedTime(formattedTime);
+    },
+    [setVisible]
+  );
+
+  const [pickedTime, setPickedTime] = useState();
 
   return (
-    <form>
     <ScrollView style={styles.container}>
       <View>
         <Text style={{ color: "#black", fontWeight: "bold" }}>First Name</Text>
@@ -257,13 +298,49 @@ export default function Index() {
         />
         {errors.lastName && <Text>Last Name is required.</Text>}
 
+        <SafeAreaProvider>
+          <View styles={styles.datepicker}>
+            <Button styles={styles.button} onPress={() => setOpen(true)} uppercase={false} mode="outlined">
+              Accurate Birth Date
+            </Button>
+            <DatePickerModal
+              disableStatusBarPadding
+              locale="en"
+              mode="single"
+              visible={open}
+              onDismiss={onDismissSingle}
+              date={date}
+              onConfirm={onConfirmSingle}
+              format={formatDate}
+            />
+          </View>
+            </SafeAreaProvider>
+        {pickedDate && <Text style={styles.text}>Birth date: {pickedDate}</Text>}
 
+        <SafeAreaProvider>
+          <View styles={{justifyContent: 'center', flex: 1, alignItems: 'center'}}>
+            <Button styles={styles.button} onPress={() => setVisible(true)} uppercase={false} mode="outlined">
+              Accurate Birth Time - 24 hour format.
+            </Button>
+            <TimePickerModal
+              visible={visible}
+              onDismiss={onDismiss}
+              onConfirm={onConfirm}
+              hours={20}
+              minutes={45}
+              //use24HourClock
+              defaultInputType='keyboard'
+              is24Hour={true}
+            />
+            {pickedTime && <Text style={styles.text}>Birth time: {pickedTime}</Text>}
+          </View>
+        </SafeAreaProvider>
 
         {Object.keys(formFields).map((ele, index) => {
           const fld = formFields[ele];
           return (
             <View key={'_formField_' + index}>
-              <Text>{fld.label}</Text>
+              <Text style={{ color: "#black", fontWeight: "bold" }}>{fld.label}</Text>
               <ZDropDown
                 labelField={fld.labelField}
                 valueField={fld.valueField}
@@ -299,34 +376,13 @@ export default function Index() {
           style={styles.submit}
           onPress={handleSubmit(onSubmit)}
           underlayColor='#fff'>
-            <Text style={[styles.submitText]}>Submit</Text>
+            <Text style={[styles.submitText]}>Submits</Text>
         </TouchableHighlight>
-      </View>
-      <View>
-        <Text>Selected Country</Text>
-        <Text style={styles.selectedValue}>
-          {formFields.country.selectedItem.name}
-        </Text>
-        <Text>Selected State</Text>
-        <Text style={styles.selectedValue}>
-          {formFields.state.selectedItem.name}
-        </Text>
-        <Text>Selected City</Text>
-        <Text style={styles.selectedValue}>
-          {formFields.city.selectedItem.name}
-        </Text>
-      </View>
-{/*       <TouchableOpacity onPress={() => resetForm()} style={styles.clrBtn}>
-        <Text style={styles.clrBtnTxt}>Reset</Text>
-      </TouchableOpacity>
-      <Snackbar duration={2000} visible={visible} onDismiss={onDismissSnackBar}>
-        {snackMsg}
-      </Snackbar> */}
-    </ScrollView>
-  </form>
+
+        </View>
+      </ScrollView>
   );
 }
-
 
 const ZDropDown = ({
   data,
@@ -338,10 +394,7 @@ const ZDropDown = ({
   onChange,
   isFocus,
 }) => {
-  return (
-
-
-    
+  return (  
     <Dropdown
       mode={'auto'}
       style={[styles.dropdown, isFocus ? { borderColor: 'dodgerblue' } : {}]}
@@ -389,7 +442,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderRadius: 8,
     paddingHorizontal: 8,
-    marginTop: 5,
+    marginTop: 10,
     marginBottom: 20,
   },
   placeholderStyle: {
@@ -407,12 +460,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   input: {
-    marginVertical: 6,
+    marginBottom: 10,
     justifyContent: "center",
     borderRadius: 8,
     backgroundColor:'white',
     flex: 1,
     color: "#black",
+    fontWeight: "bold",
   },
   submit: {
     marginRight: 40,
@@ -428,5 +482,41 @@ const styles = StyleSheet.create({
   submitText: {
     color: '#fff',
     textAlign: 'center',
-  }
+  },
+  button: {
+    marginLeft: 1,
+    marginTop: 25,
+    alignContent: "space-around",
+    fontWeight: "bold",
+    width: 325,
+    borderRadius: 2,
+    paddingTop: 25,
+    marginBottom: 25,
+    color: 'black',
+  },
+  text: {
+    color: 'blue',
+    fontWeight: "bold",
+    marginLeft: 1,
+    alignContent: "space-around",
+    width: 325,
+    borderRadius: 2,
+    paddingTop: 5,
+    marginBottom: 25,
+  },
+  datepicker: {
+    flex: 1,
+    justifyContent: "space-evenly",
+    paddingTop: 26,
+    marginTop: 25,
+    paddingBottom: 25,
+  },
+/*   input: {
+    marginVertical: 6,
+    justifyContent: "center",
+    borderRadius: 8,
+    backgroundColor:'white',
+    flex: 1,
+    color: "#black",
+  }, */
 });
