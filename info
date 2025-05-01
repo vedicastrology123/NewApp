@@ -1,0 +1,15 @@
+const sendWhatsAppWithFile = async (phoneNumber, filePath) => {
+  const shareOptions = {
+    social: Share.Social.WHATSAPP,
+    whatsAppNumber: phoneNumber,
+    filename: filePath.split('/').pop(), // Extract file name from path
+    url: 'file://' + filePath, // Add 'file://' prefix for local files
+    type: '*/*', // Set type to accept all file types
+  };
+  console.log('WhatsApp chat with file, Opened successfully ');
+  try {
+    await Share.shareSingle(shareOptions);
+  } catch (error) {
+    console.error('Error sharing to WhatsApp:', error);
+  }
+};
