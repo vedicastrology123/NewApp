@@ -1,522 +1,214 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
+import * as Print from 'expo-print';
+import { shareAsync } from 'expo-sharing';
+
+import * as FileSystem from 'expo-file-system';
+import WebView from 'react-native-webview';
+import Constants from 'expo-constants';
+
 import {
-  ScrollView,
-  View,
+  SafeAreaView,
   Text,
+  View,
   StyleSheet,
   TouchableHighlight,
+  ScrollView,
 } from 'react-native';
-import { Dropdown } from 'react-native-element-dropdown';
-import { TextInput } from 'react-native-paper';
-import { Button } from 'react-native-paper';
-import { useForm, Controller, SubmitHandler } from "react-hook-form";
-import { DatePickerModal, TimePickerModal } from 'react-native-paper-dates';
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { en, registerTranslation } from 'react-native-paper-dates';
-import format from 'date-fns/format';
 
-import CountriesData from './places.json';
+const html = `
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+  </head>
+  <body style="text-align: center;">
+    <h1 style="font-size: 50px; font-family: Helvetica Neue; font-weight: normal;">
+      Hello Expo App!
+    </h1>
+    <img
+      src="https://d30j33t1r58ioz.cloudfront.net/static/guides/sdk.png"
+      style="width: 90vw;" />
+  </body>
+</html>
+`;
 
-registerTranslation('en', en);
+  //const url = 'https://horoscope-oy3s.onrender.com/VedicHoroscope/birthchart.jsp?firstName=avf&lastName=af&chart=0&date=2025-04-17&time=08%3A45&countryid=Afghanistan&stateid=Badakhshan&cityid=Ashk%C4%81sham&countryLatitude=33.00000000&countryLongitude=65.00000000&countryGmtOffsetName=UTC%2B04%3A30&countryGmtOffset=4.5&countryDstOffset=0&cityLatitude=36.68333000&cityLongitude=71.53333000&cityGmtOffsetName=Asia%2FKabul&cityGmtOffset=4.5&cityDstOffset=4.5';
 
-const formFields = {
-  country: {
-    fieldId: 'country',
-    label: 'Country',
-    labelField: 'name',
-    valueField: 'id',
-    parents: [],
-    list: [],
-    selectedItem: {},
-    selectedValue: null,
-    onValueSelected: () => null,
-  },
-  state: {
-    fieldId: 'state',
-    label: 'State',
-    labelField: 'name',
-    valueField: 'id',
-    parents: ['country'],
-    list: [],
-    selectedItem: {},
-    selectedValue: null,
-    onValueSelected: () => null,
-  },
-  city: {
-    fieldId: 'city',
-    label: 'City',
-    labelField: 'name',
-    valueField: 'id',
-    parents: ['country', 'state'],
-    list: [],
-    selectedItem: {},
-    selectedValue: null,
-    onValueSelected: () => null,
-  },
-};
-
-var focusField = '';
-var snackMsg = '';
-
-let formValue = [];
-let countryFormValue, stateFormValue, cityFormValue;
-
-export default function Index() {
-  const [refreshPage, setRefreshPage] = useState(false);
-  const [visible, setVisible] = useState(false);
-
-  const onToggleSnackBar = () => setVisible(!visible);
-  const onDismissSnackBar = () => setVisible(false);
-
-  const resetForm = () => {
-    resetFields('country');
-    focusField = '';
-    loadCountry();
+  const birthData = {
+    firstName: 'stringf',
+    lastName: 'stringl',
+    countryLatitude: 20.00000000,
+    countryLongitude: 77.00000000,
+    countryGmtOffsetName: 'UTC+05:30',
+    countryGmtOffset: 5.5,
+    countryDstOffset: 0,
+    cityGmtOffsetName: 'Asia/Kolkata',
+    cityGmtOffset: 5.5,
+    cityDstOffset: 0,
+    chart: 0,
+    date: '2025-5-9',
+    time: '10:25',
+    countryid: 'India',
+    stateid: 'Tamil Nadu',
+    cityid: 'Chennai',
+    cityLatitude: 13.08784000,
+    cityLongitude: 80.27847000,
   };
 
-  const changeFocusField = (fld = '') => {
-    focusField = fld;
-    setRefreshPage(!refreshPage);
-  };
-
-  const resetFields = (fld = '') => {
-    var b = false;
-    for (let kee in formFields) {
-      if (b) {
-        formFields[kee].list = [];
-        formFields[kee].selectedItem = {};
-        formFields[kee].selectedValue = null;
-      } else {
-        if (kee === fld) {
-          b = true;
-          formFields[kee] = {
-            ...formFields[kee],
-            list: [],
-            selectedItem: {},
-            selectedValue: null,
-          };
-        }
-      }
+  const params = new URLSearchParams();
+  for (const key in birthData) {
+    if (birthData.hasOwnProperty(key)) {
+      params.append(key, birthData[key]);
+      console.log("key: " + key + " value: " + birthData[key]);
     }
-  };
-
-  const allValuesSelected = () => {
-    console.log('All fields selected');
-  };
-
-  const loadCity = async () => {
-    resetFields('city');
-
-      let CityArray = [];
-      let citiesOfState;
-      CountriesData.map(item => {
-      let countryVal, stateVal;
-        if (item.id === formFields.country.selectedValue) {
-          countryVal = item.id;
-          return item.states.map(stateItem => {
-            if (stateItem.id === formFields.state.selectedValue) {
-              stateVal = stateItem.id;
-              citiesOfState  = {key : stateVal, value : stateItem.cities};
-            }
-          })
-        }
-      })
-      var cities = citiesOfState.value;
-  
-      var keyCount  = Object.keys(cities).length;
-  
-      for (var i = 0; i < keyCount; i++) {
-        CityArray.push({
-          id: cities[i].id,
-          name: cities[i].name,
-        })
-      }
-
-    if (CityArray.length) {
-      formFields.city.list = [...CityArray];
-    }
-    setRefreshPage(!refreshPage);
-  };
-
-  const loadState = async () => {
-    resetFields('state');
-
-    let StateArray = [];
-    let states;
-    CountriesData.map(item => {
-      let countryVal;
-        if (item.id === formFields.country.selectedValue) {
-          countryVal = item.id;
-          states = {key : countryVal, value : item.states};
-        }
-    })
-    let indianStates = states.value;
-
-    var keyCount  = Object.keys(indianStates).length;
-
-    for (var i = 0; i < keyCount; i++) {
-      StateArray.push({
-        id: indianStates[i].id,
-        name: indianStates[i].name,
-      })
-    }
-
-    if (StateArray.length) {
-      formFields.state.list = [...StateArray];
-    }
-    setRefreshPage(!refreshPage);
-  };
-
-  const loadCountry = async () => {
-
-    let CountryArray = [];
-    var keyCount  = Object.keys(CountriesData).length;
-
-    for (var i = 0; i < keyCount; i++) {
-      CountryArray.push({
-        id: CountriesData[i].id,
-        name: CountriesData[i].name,
-      })
-    }
-    formFields.country.list = [...CountryArray];
-    setRefreshPage(!refreshPage);
-  };
-
-  const loadPageData = () => {
-    formFields.country.onValueSelected = loadState;
-    formFields.state.onValueSelected = loadCity;
-
-    loadCountry();
-  };
-
-  useEffect(() => {
-    loadPageData();
-  }, []);
-
-  type Inputs = {
-    firstName: string
-    lastName: string
-    dtob: Date
   }
   
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<Inputs>()
-  const onSubmit: SubmitHandler<Inputs> = (data) => {
-     countryFormValue = formValue[0];
-    stateFormValue = formValue[1];
-    cityFormValue = formValue[2];
-    const submittedData  = { ...data, countryFormValue, stateFormValue, cityFormValue }; 
+  var url = "https://horoscope-oy3s.onrender.com/VedicHoroscope/birthchart.jsp?" + params;
+  console.log("url  " + url);
+  /*     
+  try {
+      const response = fetch(url, {
+      mode: 'no-cors',
+      method: 'POST',
+      body: params,
+      headers: {
+          'Accept': 'application/text',
+          'Content-Type': 'text/html',
+      },
+      });
+      
+      const html = await response.text();
+      setHtmlstring(htmlString);
+  } catch (error) {
+      console.error(error);
+  }*/
+  
+export default function Index() {
+  const [htmlContent, setHtmlContent] = useState('');
 
-    //console.log("formValue[0] " + submittedData.countryFormValue);
-  };
+  useEffect(() => {
+    const fetchHTML = async () => {
+      try {
+        const response = await fetch(url);
+        const html = await response.text();
+        setHtmlContent(html);
+      } catch (error) {
+        console.error('Error fetching HTML:', error);
+      }
+    };
 
-  const [date, setDate] = React.useState(new Date());
-  const [open, setOpen] = React.useState(false);
+    fetchHTML();
+  }, []);
 
-  const onDismissSingle = React.useCallback(() => {
-    setOpen(false);
-  }, [setOpen]);
+  const yourName = encodeURI(birthData.firstName + " " + birthData.lastName + " ");
+  const yName = decodeURI(yourName);
+  const intro0 = "Your Vedic horoscope is made according to";
+  const intro1 = " True Lahiri Ayanamsa ";
+  const intro2 = "True sidereal solar years ,"
+  const intro3 = " Parasara system ";
+  const intro4 = " Vimshottari Dasha system.";
+  const printToFile = async (yourName) => {
+  // On iOS/android prints the given html. On web prints the HTML from the current page.
+  const result = await Print.printToFileAsync(
+    { html: htmlContent,
+      base64: false
+    });
+  if (result && result.uri) {
+    // New file name
+    const newFileName = `${FileSystem.documentDirectory}${yourName}Horoscope.pdf`;
 
-  const onConfirmSingle = React.useCallback(
-    (params) => {
-      setOpen(false);
-      //const formattedDate = {params.date ? format(date, 'dd/MMM/yyyy') : ''}
-      console.log(params.date);
-      setPickedDate(formatDate(params.date));
-    },
-    [setOpen, setDate]
-  );
+    // Rename the PDF file
+    await FileSystem.moveAsync({
+      from: result.uri,
+      to: newFileName,
+    });
 
-  const formatDate = (date) => {
-    return format(date, 'dd-MMM-yyyy'); // Customize your format here
-   };
-
-  const [pickedDate, setPickedDate] = useState();
-
-  //const [visible, setVisible] = React.useState(false)
-  const onDismiss = React.useCallback(() => {
-    setVisible(false)
-  }, [setVisible])
-
-  const onConfirm = React.useCallback(
-    ({ hours, minutes }) => {
-      setVisible(false);
-      console.log({ hours, minutes });
-      const formattedTime = format(new Date(0, 0, 0, hours, minutes), 'hh:mm a');
-      setPickedTime(formattedTime);
-    },
-    [setVisible]
-  );
-
-  const [pickedTime, setPickedTime] = useState();
+  console.log('File has been saved to:', newFileName);
+  await shareAsync(newFileName, { UTI: '.pdf', mimeType: 'application/pdf', dialogTitle: 'Your Horoscope' });
+  }
+};
+/* 
+  const printToFile = async () => {
+    try {
+      const { uri } = await Print.printToFileAsync({ html: htmlContent });
+      console.log('File has been saved to:', uri);
+    } catch (error) {
+      console.error('Error printing:', error);
+    }
+  }; */
 
   return (
-    <ScrollView style={styles.container}>
-      <View>
-        <Text style={{ color: "#black", fontWeight: "bold" }}>First Name</Text>
-        <Controller
-          control={control}
-          rules={{
-            required: true,
-          }}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              placeholder="First name"
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-              mode="outlined"
-              label="First Name"
-              style={styles.input}
-            />
-          )}  
-          name="firstName"
-        />
-        {errors.firstName && <Text>First Name is required.</Text>}
-        
-        <Text style={{ color: "#black", fontWeight: "bold" }}>Last Name</Text>
-        <Controller
-          control={control}
-          rules={{
-            required: true,
-          }}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              placeholder="Last Name"
-              label="Last Name"
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-              mode="outlined"
-              style={styles.input}
-            />
-          )}
-          name="lastName"
-        />
-        {errors.lastName && <Text>Last Name is required.</Text>}
-
-        <SafeAreaProvider>
-          <View styles={styles.datepicker}>
-            <Button styles={styles.button} onPress={() => setOpen(true)} uppercase={false} mode="outlined">
-              Accurate Birth Date
-            </Button>
-            <DatePickerModal
-              disableStatusBarPadding
-              locale="en"
-              mode="single"
-              visible={open}
-              onDismiss={onDismissSingle}
-              date={date}
-              onConfirm={onConfirmSingle}
-              format={formatDate}
-            />
-          </View>
-            </SafeAreaProvider>
-        {pickedDate && <Text style={styles.text}>Birth date: {pickedDate}</Text>}
-
-        <SafeAreaProvider>
-          <View styles={{justifyContent: 'center', flex: 1, alignItems: 'center'}}>
-            <Button styles={styles.button} onPress={() => setVisible(true)} uppercase={false} mode="outlined">
-              Accurate Birth Time - 24 hour format.
-            </Button>
-            <TimePickerModal
-              visible={visible}
-              onDismiss={onDismiss}
-              onConfirm={onConfirm}
-              hours={20}
-              minutes={45}
-              //use24HourClock
-              defaultInputType='keyboard'
-              is24Hour={true}
-            />
-            {pickedTime && <Text style={styles.text}>Birth time: {pickedTime}</Text>}
-          </View>
-        </SafeAreaProvider>
-
-        {Object.keys(formFields).map((ele, index) => {
-          const fld = formFields[ele];
-          return (
-            <View key={'_formField_' + index}>
-              <Text style={{ color: "#black", fontWeight: "bold" }}>{fld.label}</Text>
-              <ZDropDown
-                labelField={fld.labelField}
-                valueField={fld.valueField}
-                data={fld.list}
-                value={fld.selectedValue}
-                isFocus={focusField === ele}
-                onFocus={() => {
-                  changeFocusField(ele);
-                  const parents = fld.parents;
-                  for (let pr of parents) {
-                    if (!formFields[pr].selectedValue) {
-                      snackMsg = 'Select ' + formFields[pr].label;
-                      focusField = pr;
-                      onToggleSnackBar();
-                      break;
-                    }
-                  }
-                }}
-                onBlur={() => changeFocusField('')}
-                onChange={(item) => {
-                  fld.selectedItem = item;
-                  fld.selectedValue = item[fld.valueField];
-                  focusField = '';
-                  formValue[index] = item.name;
-                  console.log("formValue[index]  " + formValue[1]);
-                  fld.onValueSelected();
-                }}
-              />
-            </View>
-          );
-        })}
-        <TouchableHighlight
-          style={styles.submit}
-          onPress={handleSubmit(onSubmit)}
-          underlayColor='#fff'>
-            <Text style={[styles.submitText]}>Submits</Text>
-        </TouchableHighlight>
-
+    <SafeAreaView>
+      <ScrollView>
+        <View style={styles.container} >
+        <Text style={styles.titleText}>{yName} - Vedic Horoscope.</Text>
+        <Text style={styles.titleText}>By</Text>
+        <Text style={styles.titleText}>Steve Hora, Astrology Expert, India.{'\n'}</Text>
+        <Text style={styles.titleText}>{intro0}
+        <Text style={{fontWeight: "bold", textAlign: 'left'}}>{intro1}</Text>
+        <Text style={styles.titleText}>
+          (Chitra Paksha), 
+        <Text style={{fontWeight: "bold", textAlign: 'left'}}>{intro2}</Text>
+          of Sun traversing 360 degrees
+        <Text style={{fontWeight: "bold", textAlign: 'left'}}>{intro3}</Text>
+          and Timing using 
+        <Text style={{fontWeight: "bold", textAlign: 'left'}}>{intro4}
+        </Text></Text></Text>
+          <TouchableHighlight
+            style={styles.submit}
+            onPress={() => printToFile(yourName)}
+            underlayColor='#fff'>
+            <Text style={[styles.submitText]}>Save as PDF.</Text>
+          </TouchableHighlight>
+          
+          {/* <WebView source={{ uri: url }} /> */}
         </View>
       </ScrollView>
-  );
-}
-
-const ZDropDown = ({
-  data,
-  labelField,
-  valueField,
-  value,
-  onFocus,
-  onBlur,
-  onChange,
-  isFocus,
-}) => {
-  return (  
-    <Dropdown
-      mode={'auto'}
-      style={[styles.dropdown, isFocus ? { borderColor: 'dodgerblue' } : {}]}
-      placeholderStyle={styles.placeholderStyle}
-      selectedTextStyle={styles.selectedTextStyle}
-      inputSearchStyle={styles.inputSearchStyle}
-      iconStyle={styles.iconStyle}
-      search={data.length > 5}
-      maxHeight={300}
-      searchPlaceholder="Search..."
-      data={data}
-      labelField={labelField}
-      valueField={valueField}
-      placeholder={!isFocus ? 'Select item' : '...'}
-      value={value}
-      onFocus={onFocus}
-      onBlur={onBlur}
-      onChange={onChange}
-    />
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-  },
-  clrBtn: {
     padding: 10,
+    backgroundColor: '#black',
     alignItems: 'center',
-    alignSelf: 'center',
   },
-  clrBtnTxt: {
-    color: 'grey',
-  },
-  selectedValue: {
-    color: 'steelblue',
-    marginLeft: 5,
-    marginTop: 5,
-    marginBottom: 10,
-  },
-  dropdown: {
-    height: 50,
-    borderColor: 'gray',
-    borderWidth: 0.5,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  placeholderStyle: {
+  titleText: {
     fontSize: 16,
-  },
-  selectedTextStyle: {
-    fontSize: 16,
-  },
-  iconStyle: {
-    width: 20,
-    height: 20,
-  },
-  inputSearchStyle: {
-    height: 40,
-    fontSize: 16,
-  },
-  input: {
-    marginBottom: 10,
-    justifyContent: "center",
-    borderRadius: 8,
-    backgroundColor:'white',
-    flex: 1,
-    color: "#black",
-    fontWeight: "bold",
+    // fontWeight: 'bold',
+    textAlign: 'left',
+    paddingLeft: 4,
+    paddingRight: 4,
   },
   submit: {
     marginRight: 40,
     marginLeft: 40,
     marginTop: 10,
-    paddingTop: 20,
-    paddingBottom: 20,
-    backgroundColor: '#68a0cf',
-    borderRadius: 10,
+    paddingTop: 10,
+    paddingBottom: 10,
+    backgroundColor: '#247cc7',
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#fff',
   },
   submitText: {
     color: '#fff',
     textAlign: 'center',
+    paddingLeft: 10,
+    paddingRight: 10,
   },
-  button: {
-    marginLeft: 1,
-    marginTop: 25,
-    alignContent: "space-around",
-    fontWeight: "bold",
-    width: 325,
-    borderRadius: 2,
-    paddingTop: 25,
-    marginBottom: 25,
+
+  textStyle: {
+    fontSize: 18,
+    padding: 10,
     color: 'black',
+    textAlign: 'center',
   },
-  text: {
-    color: 'blue',
-    fontWeight: "bold",
-    marginLeft: 1,
-    alignContent: "space-around",
-    width: 325,
-    borderRadius: 2,
-    paddingTop: 5,
-    marginBottom: 25,
+  imageStyle: {
+    width: 150,
+    height: 150,
+    margin: 5,
+    resizeMode: 'stretch',
   },
-  datepicker: {
-    flex: 1,
-    justifyContent: "space-evenly",
-    paddingTop: 26,
-    marginTop: 25,
-    paddingBottom: 25,
-  },
-/*   input: {
-    marginVertical: 6,
-    justifyContent: "center",
-    borderRadius: 8,
-    backgroundColor:'white',
-    flex: 1,
-    color: "#black",
-  }, */
 });
