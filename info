@@ -1,3 +1,59 @@
+
+import Share from 'react-native-share';
+import Pdf from 'react-native-pdf';
+import WebView from 'react-native-webview';
+import Constants from 'expo-constants';
+
+/*   const PDFScreen = (newFileName) => {
+    const source = { uri: 'file:///' + newFileName, cache: true }; // or {uri: 'file:///...', cache: true} for local files
+    return (
+      <View style={styles.container}>
+        <Pdf source={source} style={styles.pdf} />
+      </View>
+    );
+  }; */
+/*   const sendWhatsAppWithFile = async (phoneNumber, filePath) => {
+    const shareOptions = {
+      title: 'Share via',
+      useInternalStorage: true,
+      message: 'Your Horoscope',
+      social: Share.Social.WHATSAPP,
+      whatsAppNumber: phoneNumber,
+      filename: filePath.split('/').pop(), // Extract file name from path
+      url: 'file://' + filePath, // Add 'file://' prefix for local files
+      type: 'application/pdf', // Set type to accept all file types
+    };
+    //console.log('WhatsApp chat with file, Opened successfully ' + phoneNumber + "file " + filePath);
+    try {
+      await Share.shareSingle(shareOptions);
+    } catch (error) {
+      console.error('Error sharing to WhatsApp:', error);
+    } 
+  }; */
+
+ // https://wa.me/whatsappphonenumber/?text=urlencodedtext
+
+ //let myWAurl = 'https://wa.me/' + myWhatsAppNumber + '?text=' + 'm%20Contact%20Steve Hora,%20Vedic%20Astrologer%20for%20your%20predictions%20at%20918610386346';
+
+ //const openWhatsApp = (myWhatsAppNumber) => {
+/*     if (Platform.OS === 'android') {
+     url = `whatsapp://send?phone=${myWhatsAppNumber}`;
+   } else if (Platform.OS === 'ios') {
+     url = `whatsapp://wa.me/${myWhatsAppNumber}`;
+   } else {
+     console.error('Unsupported platform');
+     return;
+   }   */ 
+
+/*     Linking.openURL(myWAurl).then((data) => {
+     console.log('WhatsApp Opened successfully ', data);
+   }).catch((err) => {
+     console.log(err);
+     alert('Make sure Whatsapp is installed on your device.');
+   })
+ }; */
+
+
 const sendWhatsAppWithFile = async (phoneNumber, filePath) => {
   const shareOptions = {
     social: Share.Social.WHATSAPP,
@@ -13,3 +69,22 @@ const sendWhatsAppWithFile = async (phoneNumber, filePath) => {
     console.error('Error sharing to WhatsApp:', error);
   }
 };
+
+  /*     
+  try {
+      const response = fetch(url, {
+      mode: 'no-cors',
+      method: 'POST',
+      body: params,
+      headers: {
+          'Accept': 'application/text',
+          'Content-Type': 'text/html',
+      },
+      });
+      
+      const html = await response.text();
+      setHtmlstring(htmlString);
+  } catch (error) {
+      console.error(error);
+  }*/
+  

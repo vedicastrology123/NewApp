@@ -4,6 +4,9 @@ apply plugin: "com.facebook.react"
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
+defaultConfig {
+    applicationId "com.stevehora.astrogram"
+ 
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -153,7 +156,7 @@ dependencies {
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
     def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";
     def isWebpAnimatedEnabled = (findProperty('expo.webp.animated') ?: "") == "true";
-
+implementation project(':react-native-share')
     if (isGifEnabled) {
         // For animated gif support
         implementation("com.facebook.fresco:animated-gif:${reactAndroidLibs.versions.fresco.get()}")
