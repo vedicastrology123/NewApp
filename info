@@ -4,6 +4,10 @@ import Pdf from 'react-native-pdf';
 import WebView from 'react-native-webview';
 import Constants from 'expo-constants';
 
+"react-native-web-webview": "^1.0.2",
+"react-native-web": "^0.20.0",
+"react-native-webview": "^13.13.5"
+
 /*   const PDFScreen = (newFileName) => {
     const source = { uri: 'file:///' + newFileName, cache: true }; // or {uri: 'file:///...', cache: true} for local files
     return (
