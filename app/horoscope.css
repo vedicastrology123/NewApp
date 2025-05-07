@@ -1,0 +1,59 @@
+.table {
+	float: left;
+	display:block;
+	padding-left: 45px;
+	padding-bottom: 15px;
+}
+
+.row {
+	float: left;
+	display:block;
+}
+
+.cell {
+	float: left;
+	display:block;
+}
+
+.float-container {
+	display: table;
+	width: 600px;
+	float: left;
+	padding-left: 5px;
+	padding-bottom: 5px;
+}
+.float-child {
+	width: 75px fixed;
+	display: table-cell;
+	padding-right: 5px;
+	padding-left: 45px;
+	padding-bottom: 5px;
+}
+
+.Table {
+	display: table;
+	border-collapse:collapse;
+	padding-left: 45px;
+	padding-right: 15px;
+
+}
+.Row {
+	display: table-row;
+}
+
+.Cell {
+	display: table-cell;
+	table-layout:fixed;
+	border: 1px solid;
+	width: 35px;
+	height: 25px;
+	padding-left: 5px;
+	padding-right: 3px;
+	word-wrap: break-word;
+	min-height:25px;
+	min-width: 60px;
+}
+
+.no-shrink::after {
+  content: '\200B'; /* zero width space */
+}
